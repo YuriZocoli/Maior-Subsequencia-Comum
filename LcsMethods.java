@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,22 +44,22 @@ public class LcsMethods {
         return result;
     }
 
-    private static void backtrack(Integer[][] dp, String s1, String s2, Integer i, Integer j, Integer lcs_len, String current, Set<String> resultado){
-        if (i == 0 || j == 0){
-            if (current.length() == lcs_len && isSubsequence(current, s2))
-                resultado.add(current);
+    private static void backtrack(Integer[][] dpm, String string1, String string2, Integer indexString1, Integer indexString2, Integer lcsLen, String current, Set<String> result){
+        if (indexString1 == 0 || indexString2 == 0){
+            if (current.length() == lcsLen && isSubsequence(current, string2))
+                result.add(current);
             return;
         }
-        if (s1.charAt(i-1) == s2.charAt(j-1))
-            backtrack(dp, s1, s2, i-1, j-1, lcs_len, s1.charAt(i-1) + current, resultado);
+        if (string1.charAt(indexString1-1) == string2.charAt(indexString2-1))
+            backtrack(dpm, string1, string2, indexString1-1, indexString2-1, lcsLen, string1.charAt(indexString1-1) + current, result);
         else{
-            if (dp[i-1][j] > dp[i][j-1])
-                backtrack(dp, s1, s2, i-1, j, lcs_len, current, resultado);
-            else if (dp[i][j-1] > dp[i-1][j])
-                backtrack(dp, s1, s2, i, j-1, lcs_len, current, resultado);
+            if (dpm[indexString1-1][indexString2] > dpm[indexString1][indexString2-1])
+                backtrack(dpm, string1, string2, indexString1-1, indexString2, lcsLen, current, result);
+            else if (dpm[indexString1][indexString2-1] > dpm[indexString1-1][indexString2])
+                backtrack(dpm, string1, string2, indexString1, indexString2-1, lcsLen, current, result);
             else {
-                backtrack(dp, s1, s2, i-1, j, lcs_len, current, resultado);
-                backtrack(dp, s1, s2, i, j-1, lcs_len, current, resultado);
+                backtrack(dpm, string1, string2, indexString1-1, indexString2, lcsLen, current, result);
+                backtrack(dpm, string1, string2, indexString1, indexString2-1, lcsLen, current, result);
             }
         }
     }
