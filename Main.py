@@ -114,6 +114,9 @@ class LCSApp:
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         
         # Posicionar canvas e scrollbar
+        self.input_frame.grid_columnconfigure(0, weight=1)
+        self.input_frame.grid_columnconfigure(1, weight=1)
+
         self.canvas.grid(row=3, column=0, sticky='nsew')
         self.scrollbar.grid(row=3, column=1, sticky='ns')
         
@@ -128,7 +131,9 @@ class LCSApp:
         # Rótulo para exibir o tempo de execução
         self.time_label = tk.Label(self.root, text="Tempo de execução: N/A")
         self.time_label.grid(row=6, column=0, columnspan=2)
-    
+
+        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+
     def generate_input_fields(self):
         # Limpar o frame existente
         for widget in self.input_frame.winfo_children():
@@ -141,43 +146,44 @@ class LCSApp:
         except ValueError:
             messagebox.showerror("Erro", "Por favor, insira um número inteiro positivo para o número de conjuntos.")
             return
-        
+
         self.string_entries = []
         for i in range(num_sets):
-            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 1:").grid(row=i*2, column=0, sticky='w')
+            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 1:").grid(row=i*2, column=0, sticky='e')
             entry1 = tk.Entry(self.input_frame)
             entry1.grid(row=i*2, column=1, sticky='w')
-            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 2:").grid(row=i*2+1, column=0, sticky='w')
+            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 2:").grid(row=i*2+1, column=0, sticky='e')
             entry2 = tk.Entry(self.input_frame)
             entry2.grid(row=i*2+1, column=1, sticky='w')
             self.string_entries.append((entry1, entry2))
-        
+
         # Atualizar a região de rolagem
         self.canvas.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-    
+
     def calculate_lcs(self):
         approach = self.approach_var.get()
         if not approach:
             messagebox.showerror("Erro", "Por favor, selecione uma abordagem.")
             return
-        
+
         if not hasattr(self, 'string_entries') or not self.string_entries:
             messagebox.showerror("Erro", "Por favor, gere os campos de entrada primeiro.")
             return
-        
+
         self.result_text.config(state='normal')
         self.result_text.delete(1.0, tk.END)
 
         # Iniciar a medição do tempo
         start_time = time.time()
-        
+
         for idx, (entry1, entry2) in enumerate(self.string_entries):
-            s1 = entry1.get().strip()
-            s2 = entry2.get().strip()
-            if not s1 or not s2:
-                continue  # Pular se alguma string estiver vazia
-            
+            s1 = entry1.get().strip().lower()
+            s2 = entry2.get().strip().lower()
+            if not s1 or not s2 or s1 == "" or s2 == "":
+                messagebox.showerror("Erro", "Todos os campos de entrada devem estar preenchidos.")
+                return
+
             dp = calcularComprimentoLCS(s1, s2)
             if approach == "Com backtracking":
                 lcs_set = all_lcs_with_backtranking(s1, s2, dp)
@@ -189,17 +195,18 @@ class LCSApp:
                     self.result_text.insert(tk.END, sub + "\n")
                 if idx < len(self.string_entries) - 1:
                     self.result_text.insert(tk.END, "\n")
-        
-        # Finalizar a medição do tempo
+
         end_time = time.time()
         execution_time = end_time - start_time
         
         # Atualizar o rótulo com o tempo de execução
         self.time_label.config(text=f"Tempo de execução: {execution_time:.4f} segundos")
-
+        
         self.result_text.config(state='disabled')
 
-# Substituição do main original
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = LCSApp(root)
