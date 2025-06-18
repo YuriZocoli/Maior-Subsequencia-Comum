@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import messagebox, scrolledtext
+
 def calcularComprimentoLCS(string1, string2):
     """
     Calcula a tabela de comprimentos da Subsequência Comum Mais Longa (LCS)
@@ -75,40 +78,100 @@ def all_lcs_without_backtraking(string1, string2, len_dp):
     
     return result_dp[n][m]
 
-def main():
-    code_type = None
-    while not code_type == 1 and not code_type == 2:
-        print("selecione a abordagem a ser utilizada:")
-        print("1 - Programacao dinamica com backtraking")
-        print("2 - Programacao dinamica sem backtraking")
-        code_type = int(input())
-        if not code_type == 1 and not code_type == 2:
-            print("opcao invalida!")
+# Classe para a interface gráfica
+class LCSApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Calculador de LCS")
+        self.create_widgets()
     
-    print("quantos conjuntos de dados serao processados")
-    D = int(input())
-    if code_type == 1:
-        for d in range(D):
-            s1 = input().strip()
-            s2 = input().strip()
+    def create_widgets(self):
+        # Rótulo e dropdown para selecionar a abordagem
+        tk.Label(self.root, text="Selecione a abordagem:").grid(row=0, column=0, sticky='w')
+        self.approach_var = tk.StringVar()
+        approach_options = ["Com backtracking", "Sem backtracking"]
+        self.approach_menu = tk.OptionMenu(self.root, self.approach_var, *approach_options)
+        self.approach_menu.grid(row=0, column=1, sticky='w')
+        
+        # Rótulo e campo para o número de conjuntos de dados
+        tk.Label(self.root, text="Número de conjuntos de dados:").grid(row=1, column=0, sticky='w')
+        self.num_sets_entry = tk.Entry(self.root)
+        self.num_sets_entry.grid(row=1, column=1, sticky='w')
+        
+        # Botão para gerar os campos de entrada
+        self.generate_button = tk.Button(self.root, text="Gerar campos", command=self.generate_input_fields)
+        self.generate_button.grid(row=2, column=0, columnspan=2)
+        
+        # Frame para os campos de entrada das strings
+        self.input_frame = tk.Frame(self.root)
+        self.input_frame.grid(row=3, column=0, columnspan=2)
+        
+        # Botão para calcular as LCS
+        self.calculate_button = tk.Button(self.root, text="Calcular LCS", command=self.calculate_lcs)
+        self.calculate_button.grid(row=4, column=0, columnspan=2)
+        
+        # Área de texto para exibir os resultados
+        self.result_text = scrolledtext.ScrolledText(self.root, width=40, height=10, state='disabled')
+        self.result_text.grid(row=5, column=0, columnspan=2)
+    
+    def generate_input_fields(self):
+        # Limpar o frame de entrada
+        for widget in self.input_frame.winfo_children():
+            widget.destroy()
+        
+        try:
+            num_sets = int(self.num_sets_entry.get())
+            if num_sets <= 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("Erro", "Por favor, insira um número inteiro positivo para o número de conjuntos.")
+            return
+        
+        self.string_entries = []
+        for i in range(num_sets):
+            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 1:").grid(row=i*2, column=0, sticky='w')
+            entry1 = tk.Entry(self.input_frame)
+            entry1.grid(row=i*2, column=1, sticky='w')
+            tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 2:").grid(row=i*2+1, column=0, sticky='w')
+            entry2 = tk.Entry(self.input_frame)
+            entry2.grid(row=i*2+1, column=1, sticky='w')
+            self.string_entries.append((entry1, entry2))
+    
+    def calculate_lcs(self):
+        approach = self.approach_var.get()
+        if not approach:
+            messagebox.showerror("Erro", "Por favor, selecione uma abordagem.")
+            return
+        
+        if not hasattr(self, 'string_entries') or not self.string_entries:
+            messagebox.showerror("Erro", "Por favor, gere os campos de entrada primeiro.")
+            return
+        
+        self.result_text.config(state='normal')
+        self.result_text.delete(1.0, tk.END)
+        
+        for idx, (entry1, entry2) in enumerate(self.string_entries):
+            s1 = entry1.get().strip()
+            s2 = entry2.get().strip()
+            if not s1 or not s2:
+                continue  # Pular se alguma string estiver vazia
+            
             dp = calcularComprimentoLCS(s1, s2)
-            lcs = all_lcs_with_backtranking(s1, s2, dp)
-            if lcs:
-                for sub in sorted(lcs):
-                    print(sub)
-            if d < D - 1:
-                print()
-    else:
-        for d in range(D):
-            s1 = input().strip()
-            s2 = input().strip()
-            dp = calcularComprimentoLCS(s1, s2)
-            lcs = all_lcs_without_backtraking(s1, s2, dp)
-            if lcs:
-                for sub in sorted(lcs):
-                    print(sub)
-            if d < D - 1:
-                print()
+            if approach == "Com backtracking":
+                lcs_set = all_lcs_with_backtranking(s1, s2, dp)
+            else:
+                lcs_set = all_lcs_without_backtraking(s1, s2, dp)
+            
+            if lcs_set:
+                for sub in sorted(lcs_set):
+                    self.result_text.insert(tk.END, sub + "\n")
+                if idx < len(self.string_entries) - 1:
+                    self.result_text.insert(tk.END, "\n")
+        
+        self.result_text.config(state='disabled')
 
+# Substituição do main original
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = LCSApp(root)
+    root.mainloop()
