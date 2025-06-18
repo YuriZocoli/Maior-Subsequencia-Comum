@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, scrolledtext
+import time
 
 def calcularComprimentoLCS(string1, string2):
     """
@@ -102,9 +103,19 @@ class LCSApp:
         self.generate_button = tk.Button(self.root, text="Gerar campos", command=self.generate_input_fields)
         self.generate_button.grid(row=2, column=0, columnspan=2)
         
-        # Frame para os campos de entrada das strings
-        self.input_frame = tk.Frame(self.root)
-        self.input_frame.grid(row=3, column=0, columnspan=2)
+        # Canvas com scrollbar para os campos de entrada
+        self.canvas = tk.Canvas(self.root)
+        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
+        self.input_frame = tk.Frame(self.canvas)
+        
+        # Configurar a rolagem
+        self.input_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.create_window((0, 0), window=self.input_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        
+        # Posicionar canvas e scrollbar
+        self.canvas.grid(row=3, column=0, sticky='nsew')
+        self.scrollbar.grid(row=3, column=1, sticky='ns')
         
         # Botão para calcular as LCS
         self.calculate_button = tk.Button(self.root, text="Calcular LCS", command=self.calculate_lcs)
@@ -113,9 +124,13 @@ class LCSApp:
         # Área de texto para exibir os resultados
         self.result_text = scrolledtext.ScrolledText(self.root, width=40, height=10, state='disabled')
         self.result_text.grid(row=5, column=0, columnspan=2)
+
+        # Rótulo para exibir o tempo de execução
+        self.time_label = tk.Label(self.root, text="Tempo de execução: N/A")
+        self.time_label.grid(row=6, column=0, columnspan=2)
     
     def generate_input_fields(self):
-        # Limpar o frame de entrada
+        # Limpar o frame existente
         for widget in self.input_frame.winfo_children():
             widget.destroy()
         
@@ -136,6 +151,10 @@ class LCSApp:
             entry2 = tk.Entry(self.input_frame)
             entry2.grid(row=i*2+1, column=1, sticky='w')
             self.string_entries.append((entry1, entry2))
+        
+        # Atualizar a região de rolagem
+        self.canvas.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     
     def calculate_lcs(self):
         approach = self.approach_var.get()
@@ -149,6 +168,9 @@ class LCSApp:
         
         self.result_text.config(state='normal')
         self.result_text.delete(1.0, tk.END)
+
+        # Iniciar a medição do tempo
+        start_time = time.time()
         
         for idx, (entry1, entry2) in enumerate(self.string_entries):
             s1 = entry1.get().strip()
@@ -168,6 +190,13 @@ class LCSApp:
                 if idx < len(self.string_entries) - 1:
                     self.result_text.insert(tk.END, "\n")
         
+        # Finalizar a medição do tempo
+        end_time = time.time()
+        execution_time = end_time - start_time
+        
+        # Atualizar o rótulo com o tempo de execução
+        self.time_label.config(text=f"Tempo de execução: {execution_time:.4f} segundos")
+
         self.result_text.config(state='disabled')
 
 # Substituição do main original
