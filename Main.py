@@ -28,7 +28,7 @@ def calcularComprimentoLCS(string1, string2):
     # Retorna a tabela DP completa
     return dp
 
-def all_lcs_with_backtranking(string1, string2, len_dp):
+def all_lcs_with_backtracking(string1, string2, len_dp):
     def is_subsequence(sub, string):
         it = iter(string)
         return all(c in it for c in sub)
@@ -54,7 +54,7 @@ def all_lcs_with_backtranking(string1, string2, len_dp):
     backtrack(len(string1), len(string2), "")
     return result
 
-def all_lcs_without_backtraking(string1, string2, len_dp):
+def all_lcs_without_backtracking(string1, string2, len_dp):
     n, m = len(string1), len(string2)
     
     # Construir tabela dp com os conjuntos de LCS
@@ -117,22 +117,27 @@ class LCSApp:
         self.input_frame.grid_columnconfigure(0, weight=1)
         self.input_frame.grid_columnconfigure(1, weight=1)
 
-        self.canvas.grid(row=3, column=0, sticky='nsew')
-        self.scrollbar.grid(row=3, column=1, sticky='ns')
+        self.canvas.grid(row=3, column=0, columnspan=2, sticky='nsew')
+        self.scrollbar.grid(row=3, column=2, sticky='ns')
         
         # Botão para calcular as LCS
         self.calculate_button = tk.Button(self.root, text="Calcular LCS", command=self.calculate_lcs)
         self.calculate_button.grid(row=4, column=0, columnspan=2)
         
-        # Área de texto para exibir os resultados
-        self.result_text = scrolledtext.ScrolledText(self.root, width=40, height=10, state='disabled')
-        self.result_text.grid(row=5, column=0, columnspan=2)
-
+        # Área de texto para exibir os resultados com rolagem horizontal e sem quebra de linha
+        self.result_text = tk.Text(self.root, width=40, height=10, wrap=tk.NONE, state='disabled')
+        self.result_vscrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.result_text.yview)
+        self.result_hscrollbar = tk.Scrollbar(self.root, orient="horizontal", command=self.result_text.xview)
+        self.result_text.configure(yscrollcommand=self.result_vscrollbar.set, xscrollcommand=self.result_hscrollbar.set)
+        self.result_text.grid(row=5, column=0, columnspan=2, sticky='nsew')
+        self.result_vscrollbar.grid(row=5, column=2, sticky='ns')
+        self.result_hscrollbar.grid(row=6, column=0, columnspan=2, sticky='ew')
+        
         # Rótulo para exibir o tempo de execução
         self.time_label = tk.Label(self.root, text="Tempo de execução: N/A")
-        self.time_label.grid(row=6, column=0, columnspan=2)
+        self.time_label.grid(row=7, column=0, columnspan=2)
 
-        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.input_frame.bind("<MouseWheel>", self._on_mousewheel)
 
     def generate_input_fields(self):
         # Limpar o frame existente
@@ -150,11 +155,13 @@ class LCSApp:
         self.string_entries = []
         for i in range(num_sets):
             tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 1:").grid(row=i*2, column=0, sticky='e')
-            entry1 = tk.Entry(self.input_frame)
+            entry1 = tk.Entry(self.input_frame, width=100)
             entry1.grid(row=i*2, column=1, sticky='w')
             tk.Label(self.input_frame, text=f"Conjunto {i+1} - String 2:").grid(row=i*2+1, column=0, sticky='e')
-            entry2 = tk.Entry(self.input_frame)
+            entry2 = tk.Entry(self.input_frame, width=100)
             entry2.grid(row=i*2+1, column=1, sticky='w')
+            entry1.bind("<MouseWheel>", self._on_mousewheel)
+            entry2.bind("<MouseWheel>", self._on_mousewheel)
             self.string_entries.append((entry1, entry2))
 
         # Atualizar a região de rolagem
@@ -186,9 +193,9 @@ class LCSApp:
 
             dp = calcularComprimentoLCS(s1, s2)
             if approach == "Com backtracking":
-                lcs_set = all_lcs_with_backtranking(s1, s2, dp)
+                lcs_set = all_lcs_with_backtracking(s1, s2, dp)
             else:
-                lcs_set = all_lcs_without_backtraking(s1, s2, dp)
+                lcs_set = all_lcs_without_backtracking(s1, s2, dp)
             
             if lcs_set:
                 for sub in sorted(lcs_set):
