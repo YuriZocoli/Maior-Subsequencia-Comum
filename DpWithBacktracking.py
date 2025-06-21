@@ -54,31 +54,6 @@ def all_lcs_with_backtracking(string1, string2, len_dp):
     backtrack(len(string1), len(string2), "")
     return result
 
-def all_lcs_without_backtracking(string1, string2, len_dp):
-    n, m = len(string1), len(string2)
-    
-    # Construir tabela dp com os conjuntos de LCS
-    result_dp = [[set() for _ in range(m + 1)] for _ in range(n + 1)]
-    for i in range(n + 1):
-        result_dp[i][0].add("")  # Borda: LCS com string vazia é ""
-    for j in range(m + 1):
-        result_dp[0][j].add("")  # Borda: LCS com string vazia é ""
-    
-    for i in range(1, n + 1):
-        for j in range(1, m + 1):
-            if string1[i-1] == string2[j-1]:
-                # Se os caracteres são iguais, extendemos as sequências de dp[i-1][j-1]
-                for seq in result_dp[i-1][j-1]:
-                    result_dp[i][j].add(seq + string1[i-1])
-            else:
-                # Se diferentes, incluímos sequências do maior comprimento
-                if len_dp[i-1][j] == len_dp[i][j]:
-                    result_dp[i][j].update(result_dp[i-1][j])
-                if len_dp[i][j-1] == len_dp[i][j]:
-                    result_dp[i][j].update(result_dp[i][j-1])
-    
-    return result_dp[n][m]
-
 # Classe para a interface gráfica
 class LCSApp:
     def __init__(self, root):
@@ -87,13 +62,6 @@ class LCSApp:
         self.create_widgets()
     
     def create_widgets(self):
-        # Rótulo e dropdown para selecionar a abordagem
-        tk.Label(self.root, text="Selecione a abordagem:").grid(row=0, column=0, sticky='w')
-        self.approach_var = tk.StringVar()
-        approach_options = ["Com backtracking", "Sem backtracking"]
-        self.approach_menu = tk.OptionMenu(self.root, self.approach_var, *approach_options)
-        self.approach_menu.grid(row=0, column=1, sticky='w')
-        
         # Rótulo e campo para o número de conjuntos de dados
         tk.Label(self.root, text="Número de conjuntos de dados:").grid(row=1, column=0, sticky='w')
         self.num_sets_entry = tk.Entry(self.root)
@@ -169,11 +137,6 @@ class LCSApp:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def calculate_lcs(self):
-        approach = self.approach_var.get()
-        if not approach:
-            messagebox.showerror("Erro", "Por favor, selecione uma abordagem.")
-            return
-
         if not hasattr(self, 'string_entries') or not self.string_entries:
             messagebox.showerror("Erro", "Por favor, gere os campos de entrada primeiro.")
             return
@@ -192,10 +155,7 @@ class LCSApp:
                 return
 
             dp = calculateLcsLength(s1, s2)
-            if approach == "Com backtracking":
-                lcs_set = all_lcs_with_backtracking(s1, s2, dp)
-            else:
-                lcs_set = all_lcs_without_backtracking(s1, s2, dp)
+            lcs_set = all_lcs_with_backtracking(s1, s2, dp)
             
             if lcs_set:
                 for sub in sorted(lcs_set):
